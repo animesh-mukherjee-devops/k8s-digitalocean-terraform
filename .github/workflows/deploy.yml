@@ -59,7 +59,6 @@ jobs:
         node_count = ${{ github.event.inputs.node_count }}
         node_size = "${{ github.event.inputs.node_size }}"
         region = "${{ github.event.inputs.region }}"
-        kubernetes_version_prefix = "1.29"
         EOF
 
     - name: Terraform Init

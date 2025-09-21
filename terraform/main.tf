@@ -3,15 +3,13 @@ provider "digitalocean" {
 }
 
 # Get available Kubernetes versions
-data "digitalocean_kubernetes_versions" "k8s_versions" {
-  version_prefix = var.kubernetes_version_prefix
-}
+data "digitalocean_kubernetes_versions" "k8s_versions" {}
 
 # Create the Kubernetes cluster
 resource "digitalocean_kubernetes_cluster" "k8s" {
   name    = var.cluster_name
   region  = var.region
-  version = data.digitalocean_kubernetes_versions.k8s_versions.latest_version
+  version = data.digitalocean_kubernetes_versions.k8s_versions.valid_versions[0]
 
   node_pool {
     name       = "worker-pool"
