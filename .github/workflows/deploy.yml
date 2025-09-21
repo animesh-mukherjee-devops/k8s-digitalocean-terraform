@@ -77,6 +77,8 @@ jobs:
         terraform apply -auto-approve
 
     - name: Setup kubectl
+      env:
+        DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
       run: |
         chmod +x scripts/setup-kubectl.sh
         ./scripts/setup-kubectl.sh
