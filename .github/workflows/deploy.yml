@@ -57,6 +57,17 @@ jobs:
           token = "${{ secrets.TF_API_TOKEN }}"
         }
         EOF
+    - name: Debug Terraform Configuration
+      run: |
+        cd terraform
+        echo "=== Terraform Version ==="
+        terraform version
+        echo "=== Terraform Configuration ==="
+        cat versions.tf
+        echo "=== Checking credentials ==="
+        cat ~/.terraformrc
+        echo "=== Terraform Directory (before init) ==="
+        ls -la .terraform/ || echo "No .terraform directory"
 
     - name: Configure Terraform variables
       run: |
@@ -72,7 +83,8 @@ jobs:
     - name: Terraform Init
       run: |
         cd terraform
-        terraform init
+        rm -rf .terraform .terraform.lock.hcl
+        terraform init -reconfigure
 
     - name: Terraform Plan
       run: |
