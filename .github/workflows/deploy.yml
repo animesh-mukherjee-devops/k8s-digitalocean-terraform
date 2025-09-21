@@ -50,6 +50,14 @@ jobs:
       with:
         terraform_version: 1.6.0
 
+    - name: Terraform Cloud Authentication
+      run: |
+        cat > ~/.terraformrc << EOF
+        credentials "app.terraform.io" {
+          token = "${{ secrets.TF_API_TOKEN }}"
+        }
+        EOF
+
     - name: Configure Terraform variables
       run: |
         cd terraform
@@ -94,3 +102,9 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Cluster Endpoint" >> $GITHUB_STEP_SUMMARY
         terraform output cluster_endpoint >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Connect Locally" >> $GITHUB_STEP_SUMMARY
+        echo "To connect to this cluster locally, run:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "doctl kubernetes cluster kubeconfig save $(terraform output -raw cluster_id)" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

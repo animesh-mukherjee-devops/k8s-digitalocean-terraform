@@ -32,6 +32,14 @@ jobs:
       with:
         terraform_version: 1.6.0
 
+    - name: Terraform Cloud Authentication
+      run: |
+        cat > ~/.terraformrc << EOF
+        credentials "app.terraform.io" {
+          token = "${{ secrets.TF_API_TOKEN }}"
+        }
+        EOF
+
     - name: Configure Terraform variables
       run: |
         cd terraform
@@ -45,6 +53,11 @@ jobs:
         cd terraform
         terraform init
 
+    - name: Terraform Plan Destroy
+      run: |
+        cd terraform
+        terraform plan -destroy
+
     - name: Terraform Destroy
       run: |
         cd terraform
@@ -54,3 +67,11 @@ jobs:
       run: |
         echo "## 🗑️ Cluster Destroyed" >> $GITHUB_STEP_SUMMARY
         echo "The Kubernetes cluster '${{ github.event.inputs.cluster_name }}' has been successfully destroyed." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Resources Removed:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Kubernetes cluster" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Worker nodes" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ VPC and networking" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Load balancer (if created)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "💰 **Cost savings**: Resources are no longer incurring charges." >> $GITHUB_STEP_SUMMARY
