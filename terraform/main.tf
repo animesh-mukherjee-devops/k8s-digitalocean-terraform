@@ -4,9 +4,8 @@ provider "digitalocean" {
 
 # Create a VPC for the cluster
 resource "digitalocean_vpc" "k8s_vpc" {
-  name     = "${var.cluster_name}-vpc-${random_id.vpc_suffix.hex}"
-  region   = var.region
-  ip_range = "10.10.0.0/16"
+  name   = "${var.cluster_name}-vpc-${random_id.vpc_suffix.hex}"
+  region = var.region
 }
 
 # Generate a random suffix for unique VPC names
