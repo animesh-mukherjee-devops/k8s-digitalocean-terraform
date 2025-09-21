@@ -34,6 +34,12 @@ variable "environment" {
   default     = "development"
 }
 
+variable "kubernetes_version_prefix" {
+  description = "Kubernetes version prefix (e.g., '1.28' will get latest 1.28.x version)"
+  type        = string
+  default     = "1.29"
+}
+
 variable "create_load_balancer" {
   description = "Whether to create a load balancer"
   type        = bool
