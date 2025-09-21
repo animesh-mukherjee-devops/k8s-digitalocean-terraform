@@ -12,11 +12,10 @@ tar xf doctl-1.104.0-linux-amd64.tar.gz
 sudo mv doctl /usr/local/bin/
 
 # Authenticate doctl
-doctl auth init --access-token $DIGITALOCEAN_TOKEN
+doctl auth init --access-token ${{ secrets.DIGITALOCEAN_TOKEN }}
 
 # Get kubeconfig from Terraform output
-cd terraform
-CLUSTER_ID=$(terraform output -raw cluster_id)
+CLUSTER_ID=$(cd terraform && terraform output -raw cluster_id)
 doctl kubernetes cluster kubeconfig save $CLUSTER_ID
 
 # Test connection
