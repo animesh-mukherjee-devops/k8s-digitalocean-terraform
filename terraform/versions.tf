@@ -12,11 +12,10 @@ terraform {
     }
   }
   
-  # Optional: Use Terraform Cloud for state management
-  # cloud {
-  #   organization = "your-org-name"
-  #   workspaces {
-  #     name = "k8s-digitalocean"
-  #   }
-  # }
+  cloud {
+    organization = "k8s-digitalocean"  # Replace with your actual org name
+    workspaces {
+      name = "k8s-digitalocean"
+    }
+  }
 }
