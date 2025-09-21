@@ -2,6 +2,18 @@ provider "digitalocean" {
   token = var.do_token
 }
 
+# Create a VPC for the cluster
+resource "digitalocean_vpc" "k8s_vpc" {
+  name     = "${var.cluster_name}-vpc-${random_id.vpc_suffix.hex}"
+  region   = var.region
+  ip_range = "10.10.0.0/16"
+}
+
+# Generate a random suffix for unique VPC names
+resource "random_id" "vpc_suffix" {
+  byte_length = 4
+}
+
 # Get available Kubernetes versions
 data "digitalocean_kubernetes_versions" "k8s_versions" {}
 
@@ -10,6 +22,7 @@ resource "digitalocean_kubernetes_cluster" "k8s" {
   name    = var.cluster_name
   region  = var.region
   version = data.digitalocean_kubernetes_versions.k8s_versions.valid_versions[0]
+  vpc_uuid = digitalocean_vpc.k8s_vpc.id
 
   node_pool {
     name       = "worker-pool"
@@ -18,13 +31,6 @@ resource "digitalocean_kubernetes_cluster" "k8s" {
   }
 
   tags = ["kubernetes", "terraform", var.environment]
-}
-
-# Create a VPC for the cluster
-resource "digitalocean_vpc" "k8s_vpc" {
-  name     = "${var.cluster_name}-vpc"
-  region   = var.region
-  ip_range = "10.10.0.0/16"
 }
 
 # Optional: Create a load balancer
