@@ -1,0 +1,56 @@
+name: Destroy Kubernetes Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'Kubernetes cluster name to destroy'
+        required: true
+        default: 'k8s-cluster'
+      confirm_destroy:
+        description: 'Type "destroy" to confirm'
+        required: true
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Validate confirmation
+      run: |
+        if [ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]; then
+          echo "❌ Confirmation failed. You must type 'destroy' to proceed."
+          exit 1
+        fi
+        echo "✅ Confirmation validated."
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Configure Terraform variables
+      run: |
+        cd terraform
+        cat > terraform.tfvars << EOF
+        do_token = "${{ secrets.DIGITALOCEAN_TOKEN }}"
+        cluster_name = "${{ github.event.inputs.cluster_name }}"
+        EOF
+
+    - name: Terraform Init
+      run: |
+        cd terraform
+        terraform init
+
+    - name: Terraform Destroy
+      run: |
+        cd terraform
+        terraform destroy -auto-approve
+
+    - name: Cleanup Summary
+      run: |
+        echo "## 🗑️ Cluster Destroyed" >> $GITHUB_STEP_SUMMARY
+        echo "The Kubernetes cluster '${{ github.event.inputs.cluster_name }}' has been successfully destroyed." >> $GITHUB_STEP_SUMMARY

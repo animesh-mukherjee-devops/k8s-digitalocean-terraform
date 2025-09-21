@@ -1,0 +1,94 @@
+name: Deploy Kubernetes Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'Kubernetes cluster name'
+        required: true
+        default: 'k8s-cluster'
+      node_count:
+        description: 'Number of worker nodes'
+        required: true
+        default: '2'
+      node_size:
+        description: 'Node size'
+        required: true
+        default: 's-2vcpu-2gb'
+        type: choice
+        options:
+        - 's-1vcpu-2gb'
+        - 's-2vcpu-2gb'
+        - 's-2vcpu-4gb'
+        - 's-4vcpu-8gb'
+      region:
+        description: 'DigitalOcean region'
+        required: true
+        default: 'nyc1'
+        type: choice
+        options:
+        - 'nyc1'
+        - 'nyc3'
+        - 'ams3'
+        - 'sgp1'
+        - 'lon1'
+        - 'fra1'
+        - 'tor1'
+        - 'sfo3'
+        - 'blr1'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Configure Terraform variables
+      run: |
+        cd terraform
+        cat > terraform.tfvars << EOF
+        do_token = "${{ secrets.DIGITALOCEAN_TOKEN }}"
+        cluster_name = "${{ github.event.inputs.cluster_name }}"
+        node_count = ${{ github.event.inputs.node_count }}
+        node_size = "${{ github.event.inputs.node_size }}"
+        region = "${{ github.event.inputs.region }}"
+        EOF
+
+    - name: Terraform Init
+      run: |
+        cd terraform
+        terraform init
+
+    - name: Terraform Plan
+      run: |
+        cd terraform
+        terraform plan
+
+    - name: Terraform Apply
+      run: |
+        cd terraform
+        terraform apply -auto-approve
+
+    - name: Setup kubectl
+      run: |
+        chmod +x scripts/setup-kubectl.sh
+        ./scripts/setup-kubectl.sh
+
+    - name: Get cluster info
+      run: |
+        cd terraform
+        echo "## Cluster Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Cluster Name:** ${{ github.event.inputs.cluster_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Region:** ${{ github.event.inputs.region }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Node Count:** ${{ github.event.inputs.node_count }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Node Size:** ${{ github.event.inputs.node_size }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Cluster Endpoint" >> $GITHUB_STEP_SUMMARY
+        terraform output cluster_endpoint >> $GITHUB_STEP_SUMMARY
